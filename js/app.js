@@ -1,3 +1,5 @@
+"use strict";
+
 /*
  * Create a list that holds all of your cards
  */
@@ -18,14 +20,17 @@ cardArray = shuffle(cardArray);
 let moveCounter = 0;
 let openCards = [];
 let matchedCardsNumber = 0;
-let averageMoveNumber = 32;
+let averageMoveNumber = 16;
 let time = 0;
 let timer;
+let timeRunning = false;
 let deletedStars = [];
 const stars =  document.querySelector('.stars');
 const totalTime = document.querySelector('.time');
 const moves = document.querySelector('.moves');
-const restartButton = document.querySelector('.restart');
+const restartButton = document.querySelector('.restart-button');
+const restartIcon = document.querySelector('.restart');
+const gameOverModal = document.querySelector('.game-over');
 
 // Creates the deck of cards and fills it with cards
 function createDeck() {
@@ -61,31 +66,49 @@ function shuffle(array) {
   return array;
 }
 
-// Ends the game by displaying a modal with the total moves and time
-function endGame() {
-  
-  const gameOverModal = document.querySelector('.game-over');
-  const totalMoves = document.querySelector('.total-moves');
-  const gameDuration = document.querySelector('.total-time');
-  
-  gameDuration.textContent = time;
-  totalMoves.textContent = moveCounter;
+// Reshuffles the deck
+function reshuffleCards() {
+  //Shuffle the cards
+  cardArray = shuffle(cardArray);
+
+  const cards = document.querySelectorAll('.card');
+  // remove the old class and add the new one
+  let i = 0;
+  for (const card of cards) {
+    card.firstElementChild.className = "";
+    card.firstElementChild.classList.add("fa",`fa-${cardArray[i]}`);
+    i++;
+  }
+}
+
+// Hides ending modal
+function hideModal() {
+
+  gameOverModal.style.display = 'none';
+}
+
+// Shows ending modal
+function showModal() {
+
   gameOverModal.style.display = 'block';
-  stopTimer();
 }
 
 // Starts counting in seconds and shows it on the score panel
 function startTimer() {
-  
-  timer = setInterval(function() {
-    time++;
-    totalTime.textContent = time;
-  }, 1000);
+
+  if(!timeRunning) {
+    timeRunning = true;
+    timer = setInterval(function() {
+      time++;
+      totalTime.textContent = time;
+    }, 1000);
+  }
 }
 
 // Stops the timer and zeroes the time that has passed
 function stopTimer() {
-  
+
+  timeRunning = false;
   clearInterval(timer);
   time = 0;
   totalTime.textContent = time;
@@ -93,21 +116,21 @@ function stopTimer() {
 
 // Resets the timer
 function resetTimer() {
-  
+
   stopTimer();
   startTimer();
 }
 
 // Shows the card and adds it to the open cards array
 function showCard(card, openCards) {
-  
+
   card.classList.add('show', 'open');
   openCards.push(card);
 }
 
 // Hides the open cards and empties the openCards array
 function hideOpenCards() {
-  
+
   for (const openCard of openCards) {
     openCard.classList.remove('show', 'open');
   }
@@ -116,8 +139,8 @@ function hideOpenCards() {
 
 // Hides all the cards on the deck
 function hideAllCards() {
-  
-  const allCards = document.querySelectorAll('.card'); 
+
+  const allCards = document.querySelectorAll('.card');
   for (const card of allCards) {
     card.classList.remove('show','open','match');
   }
@@ -148,67 +171,70 @@ function compareCards() {
 
 // increases the moves counter and shows it on the screen
 function increaseMoveCounter() {
-  
+
   let moves = document.querySelector('.moves');
   moveCounter++;
   moves.innerHTML = moveCounter;
-  decreaseStars();
+  if(moveCounter > averageMoveNumber) {
+     decreaseStars();
+     averageMoveNumber += cardArray.length;
+  }
 }
 
-// removes the stars -if there are still any- every 32 moves the player does
-function decreaseStars() {  
-  
+// removes the stars -if there are still any- every 16 moves the player does
+function decreaseStars() {
+
   const firstStar = stars.firstElementChild;
-  if(firstStar !=  null && moveCounter > averageMoveNumber) {
+  if(firstStar !=  null) {
     stars.removeChild(firstStar);
     deletedStars.push(firstStar);
-    averageMoveNumber += cardArray.length * 2;
   }
 }
 
 // resets stars
 function resetStars() {
-  
+
   const starHTML = `<li><i class="fa fa-star"></i></li>`;
+
   if(deletedStars.length > 0) {
     for(const star of deletedStars) {
         stars.insertAdjacentHTML('afterbegin', starHTML);
     }
   }
+  deletedStars.length  = 0;
 }
 
 // resets  the move counter
 function resetMoves() {
-  
+
   moveCounter = 0;
   moves.innerHTML = moveCounter;
+  averageMoveNumber = 16;
 }
 
-// if the game is not over then reset it : hides all the cards,resets the moves counter, time and cards 
+// resets the game: hides all the cards, shuffles them, resets the moves counter, time and cards
 function resetGame() {
-  
-  restartButton.addEventListener('click', function(){
-    // check if the game is over by checking hte matched cards number
-    if (matchedCardsNumber != cardArray.length) {
-      hideAllCards();
-      resetMoves();
-      resetTimer();
-      resetStars();
-    }
-  });
+
+  hideAllCards();
+  reshuffleCards();
+  resetMoves();
+  stopTimer();
+  resetStars();
+  hideModal();
 }
 
-// starts the game by adding an EventListener on the deck and starting the timer
+// starts the game by adding an EventListener on the deck
 function startGame() {
-  
-  startTimer();
+
   const deck = document.querySelector('.deck');
   deck.addEventListener('click', function(event) {
     // get the target (card) that the player clicked on
     const card = event.target;
-    // procceed if they only clicked on a card 
+    // procceed if they only clicked on a card
     if (card.nodeName === 'LI') {
-      // if the card is not already open and showing and the open cards are less than 2 
+      //start the timer
+      startTimer();
+      // if the card is not already open and showing and the open cards are less than 2
       if(!card.classList.contains('show') && !card.classList.contains('open') && openCards.length < 2) {
         // show the card and add it to the openCards array
         showCard(card, openCards);
@@ -223,6 +249,27 @@ function startGame() {
   });
 }
 
+// Ends the game by displaying a modal with the total moves and time
+function endGame() {
+
+  const totalMoves = document.querySelector('.total-moves');
+  const gameDuration = document.querySelector('.total-time');
+  const finalStars =  document.querySelector('.final-stars');
+  const starHTML = `<i class="fa fa-star"></i>`;
+
+  gameDuration.textContent = time;
+  totalMoves.textContent = moveCounter;
+  for (let i = 0; i < 3 - deletedStars.length; i++) {
+    finalStars.insertAdjacentHTML('afterbegin', starHTML);
+  }
+
+  stopTimer();
+  showModal();
+}
+
+// adds eventListeners on the reset buttons
+restartButton.addEventListener('click', resetGame);
+restartIcon.addEventListener('click', resetGame);
+
 createDeck();
 startGame();
-resetGame();
