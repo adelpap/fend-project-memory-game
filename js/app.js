@@ -185,7 +185,7 @@ function increaseMoveCounter() {
 function decreaseStars() {
 
   const firstStar = stars.firstElementChild;
-  if(firstStar !=  null) {
+  if(stars.childElementCount > 1) {
     stars.removeChild(firstStar);
     deletedStars.push(firstStar);
   }
@@ -259,7 +259,7 @@ function endGame() {
 
   gameDuration.textContent = time;
   totalMoves.textContent = moveCounter;
-  for (let i = 0; i < 3 - deletedStars.length; i++) {
+  for (let i = 0; i < 4 - deletedStars.length; i++) {
     finalStars.insertAdjacentHTML('afterbegin', starHTML);
   }
 

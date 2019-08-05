@@ -126,6 +126,7 @@ h1 {
 
 .game-over {
   display: none;
+  text-align: center;
   color: white;
   background-color: #01b3e4;
   padding: 5em;
@@ -170,13 +171,13 @@ h1 {
         width: 50px;
     }
     .score-panel {
-        width:  290px;
+        width:  270px;
     }
     .fa {
         font-size: 0.5em;
     }
     .game-over {
-        padding: 1em;
+        padding: 2em;
         font-size: 0.9em;
     }
 }
@@ -191,12 +192,12 @@ h1 {
         width: 70px;
     }
     .score-panel {
-        width:  350px;
+        width:  330px;
     }
     .fa {
         font-size: 0.7em;
     }
     .game-over {
-        padding: 2em;
+        padding: 3em;
     }
 }
