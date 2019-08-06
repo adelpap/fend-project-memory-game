@@ -4,14 +4,14 @@
  * Create a list that holds all of your cards
  */
 let cardArray = [
-  'diamond', 'diamond',
-  'paper-plane-o', 'paper-plane-o',
-  'anchor', 'anchor',
-  'bolt', 'bolt',
-  'cube', 'cube',
-  'leaf', 'leaf',
-  'bicycle', 'bicycle',
-  'bomb', 'bomb'
+  'diamond',
+  'paper-plane-o',
+  'anchor',
+  'bolt',
+  'cube',
+  'leaf',
+  'bicycle',
+  'bomb',
 ];
 
 // shuffle the cards
@@ -24,31 +24,13 @@ let averageMoveNumber = 16;
 let time = 0;
 let timer;
 let timeRunning = false;
-let deletedStars = [];
+let deletedStars = 0;
 const stars =  document.querySelector('.stars');
 const totalTime = document.querySelector('.time');
 const moves = document.querySelector('.moves');
 const restartButton = document.querySelector('.restart-button');
 const restartIcon = document.querySelector('.restart');
 const gameOverModal = document.querySelector('.game-over');
-
-// Creates the deck of cards and fills it with cards
-function createDeck() {
-
-  let deckHTML = document.createElement('ul');
-  let container = document.querySelector('.container');
-  deckHTML.classList.add('deck');
-
-  for (const card of cardArray) {
-    let cardHTML = `<li class="card closed">
-      <i class="fa fa-${card}"></i>
-    </li>`;
-    deckHTML.insertAdjacentHTML('afterbegin', cardHTML);
-  }
-
-  // Once the deck is full attach it to the container
-  container.appendChild(deckHTML);
-}
 
 // Shuffle function from http://stackoverflow.com/a/2450976
 function shuffle(array) {
@@ -66,18 +48,41 @@ function shuffle(array) {
   return array;
 }
 
-// Reshuffles the deck
-function reshuffleCards() {
-  //Shuffle the cards
-  cardArray = shuffle(cardArray);
+// Creates the deck of cards and fills it with cards
+function createDeck() {
 
-  const cards = document.querySelectorAll('.card');
-  // remove the old class and add the new one
-  let i = 0;
-  for (const card of cards) {
+  let deckHTML = document.createElement('ul');
+  let container = document.querySelector('.container');
+  deckHTML.classList.add('deck');
+
+  for (const card of cardArray) {
+    let cardHTML = `<li class="card closed">
+      <i class="fa fa-${card}"></i>
+    </li>`;
+    // There are 2 cards per card type
+    deckHTML.insertAdjacentHTML('afterbegin', cardHTML);
+    deckHTML.insertAdjacentHTML('afterbegin', cardHTML);
+  }
+
+  // Once the deck is full attach it to the container
+  container.appendChild(deckHTML);
+
+  // Shuffle the cards
+  shuffleDeck();
+}
+
+// Shuffles the deck
+function shuffleDeck() {
+
+  // Get the cards from the deck
+  let cards = document.querySelectorAll('.card');
+
+  // Shuffle the cards by random permutation of their class
+  cards = shuffle(Array.from(cards));
+  for (const [i, card] of cards.entries()) {
     card.firstElementChild.className = "";
-    card.firstElementChild.classList.add("fa",`fa-${cardArray[i]}`);
-    i++;
+    const newCardClass = cardArray[Math.floor(i/2)];
+    card.firstElementChild.classList.add("fa",`fa-${newCardClass}`);
   }
 }
 
@@ -148,7 +153,7 @@ function hideAllCards() {
   matchedCardsNumber = 0;
 }
 
-// Compares the two cards that have been opened and are in the openCards array
+// Compares the two cards that shave been opened and are in the openCards array
 function compareCards() {
   // if they match show them as matched ( add class match ) and empty the openCards array
   if (openCards[0].isEqualNode(openCards[1])) {
@@ -158,14 +163,12 @@ function compareCards() {
     openCards.length = 0;
 
     // if all the cards are matched then finish game
-    if (matchedCardsNumber == cardArray.length)  {
+    if (matchedCardsNumber == cardArray.length * 2)  {
         endGame();
     }
   } else {
-    // if the cards are not a match hide them in 0.5sec
-    setTimeout(function() {
-       hideOpenCards();
-    }, 1000);
+    // if the cards are not a match hide them in 1 sec
+    setTimeout(hideOpenCards, 1000);
   }
 }
 
@@ -187,7 +190,7 @@ function decreaseStars() {
   const firstStar = stars.firstElementChild;
   if(stars.childElementCount > 1) {
     stars.removeChild(firstStar);
-    deletedStars.push(firstStar);
+    deletedStars++;
   }
 }
 
@@ -195,13 +198,10 @@ function decreaseStars() {
 function resetStars() {
 
   const starHTML = `<li><i class="fa fa-star"></i></li>`;
-
-  if(deletedStars.length > 0) {
-    for(const star of deletedStars) {
-        stars.insertAdjacentHTML('afterbegin', starHTML);
-    }
+  for (let i = 0; i < deletedStars; i++) {
+    stars.insertAdjacentHTML('afterbegin', starHTML);
   }
-  deletedStars.length  = 0;
+  deletedStars = 0;
 }
 
 // resets  the move counter
@@ -216,11 +216,11 @@ function resetMoves() {
 function resetGame() {
 
   hideAllCards();
-  reshuffleCards();
   resetMoves();
   stopTimer();
   resetStars();
   hideModal();
+  setTimeout(shuffleDeck, 500);
 }
 
 // starts the game by adding an EventListener on the deck
@@ -257,9 +257,10 @@ function endGame() {
   const finalStars =  document.querySelector('.final-stars');
   const starHTML = `<i class="fa fa-star"></i>`;
 
+  console.log(finalStars);
   gameDuration.textContent = time;
   totalMoves.textContent = moveCounter;
-  for (let i = 0; i < 4 - deletedStars.length; i++) {
+  for (let i = 0; i < 4 - deletedStars; i++) {
     finalStars.insertAdjacentHTML('afterbegin', starHTML);
   }
 
