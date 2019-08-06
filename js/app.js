@@ -3,7 +3,7 @@
 /*
  * Create a list that holds all of your cards
  */
-let cardArray = [
+const cardArray = [
   'diamond',
   'paper-plane-o',
   'anchor',
@@ -13,9 +13,6 @@ let cardArray = [
   'bicycle',
   'bomb',
 ];
-
-// shuffle the cards
-cardArray = shuffle(cardArray);
 
 let moveCounter = 0;
 let openCards = [];
